@@ -3,7 +3,18 @@
 import React, { ChangeEvent, FormEvent, useState } from "react";
 
 export const SignupForm = () => {
-  const [formData, setFormData] = useState({
+  type FormData = {
+    username: string;
+    password: string;
+  };
+
+  type FormErrors = Partial<Record<keyof FormData, string>>;
+
+  const [formData, setFormData] = useState<FormData>({
+    username: "",
+    password: "",
+  });
+  const [validationErrors, setValidationErrors] = useState<FormErrors>({
     username: "",
     password: "",
   });
@@ -11,11 +22,41 @@ export const SignupForm = () => {
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
+    if (name === "password" && value.includes(" ")) return;
+
     setFormData((prevFormData) => ({ ...prevFormData, [name]: value }));
+    setValidationErrors((prevValidationErrors) => ({
+      ...prevValidationErrors,
+      [name]: "",
+    }));
+  };
+
+  const validateForm = (): FormErrors => {
+    const errors: FormErrors = {};
+
+    if (!formData.username.trim()) {
+      errors.username = "Username can't be empty.";
+    }
+
+    if (!formData.password.trim()) {
+      errors.password = "Password can't be empty.";
+    }
+
+    return errors;
   };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    const errors = validateForm();
+
+    if (Object.values(errors).length) {
+      setValidationErrors((prevValidationErrors) => ({
+        ...prevValidationErrors,
+        ...errors,
+      }));
+      return;
+    }
   };
 
   return (
@@ -31,6 +72,9 @@ export const SignupForm = () => {
             id={"username"}
             onChange={handleInputChange}
           />
+          {validationErrors.username && (
+            <ErrorMessage message={validationErrors.username} />
+          )}
         </LabelInputContainer>
         <LabelInputContainer>
           <Label htmlFor="password">Password</Label>
@@ -42,6 +86,9 @@ export const SignupForm = () => {
             value={formData.password}
             onChange={handleInputChange}
           />
+          {validationErrors.password && (
+            <ErrorMessage message={validationErrors.password} />
+          )}
         </LabelInputContainer>
         <button className="h-9 rounded-md bg-neutral-700 text-white text-sm font-medium hover:-top-0.5 active:scale-[98%] relative transition-all duration-200 hover:shadow-lg">
           Sign Up
@@ -76,4 +123,8 @@ const Input = ({ ...props }) => {
       {...props}
     />
   );
+};
+
+const ErrorMessage = ({ message }: { message: string }) => {
+  return <p className="text-xs text-red-600">{message}</p>;
 };
