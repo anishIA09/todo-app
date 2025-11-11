@@ -16,7 +16,9 @@ const UserSchema = new mongoose.Schema(
     email: {
       type: String,
       trim: true,
+      lowerCase: true,
       unique: true,
+      spare: true,
     },
     isEmailVerified: {
       type: Boolean,
