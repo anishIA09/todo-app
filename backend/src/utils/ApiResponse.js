@@ -1,8 +1,14 @@
 class ApiResponse {
-  constructor(statusCode, data, message = "Success") {
+  constructor(statusCode, options = {}) {
+    if (typeof options !== "object" || Array.isArray(options)) {
+      this.data = null;
+      this.message = String(options || "Success");
+    } else {
+      this.data = options.data ?? null;
+      this.message = options.message ?? "Success";
+    }
+
     this.statusCode = statusCode;
-    this.data = data;
-    this.message = message;
     this.success = statusCode < 400;
   }
 }
