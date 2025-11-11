@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import connectToDb from "./db/index.js";
 import app from "./app.js";
+import { ApiError } from "./utils/ApiError.js";
 
 dotenv.config({ path: "./.env" });
 
@@ -10,7 +11,16 @@ connectToDb()
 
     app.use((err, req, res, next) => {
       console.log("Global error. ", err);
-      res.status(500).json({
+
+      if (err instanceof ApiError) {
+        return res.status(err.statusCode).json({
+          success: false,
+          message: err.message,
+        });
+      }
+
+      return res.status(500).json({
+        success: false,
         message:
           process.env.NODE_ENV === "development"
             ? err.message
