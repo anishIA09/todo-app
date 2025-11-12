@@ -120,7 +120,7 @@ const signinController = asyncHandler(async (req, res) => {
 
 const refreshAccessTokenController = asyncHandler(async (req, res) => {
   const incomingRefreshToken =
-    req.cookies.refreshToken || req.body.refreshToken;
+    req.cookies?.refreshToken || req.body?.refreshToken;
 
   if (!incomingRefreshToken) {
     throw new UnauthorizedError();
