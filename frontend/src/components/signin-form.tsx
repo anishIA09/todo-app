@@ -1,7 +1,7 @@
 "use client";
 
 import axios from "axios";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { ChangeEvent, FormEvent, useState } from "react";
 
 export const SigninForm = () => {
@@ -22,6 +22,8 @@ export const SigninForm = () => {
   });
 
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/";
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -71,7 +73,7 @@ export const SigninForm = () => {
         }
       );
 
-      router.push("/");
+      router.push(callbackUrl);
     } catch (error) {
       console.log("Error", error);
     }
