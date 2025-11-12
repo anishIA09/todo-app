@@ -1,5 +1,6 @@
 "use client";
 
+import axios from "axios";
 import React, { ChangeEvent, FormEvent, useState } from "react";
 
 export const SignupForm = () => {
@@ -45,7 +46,7 @@ export const SignupForm = () => {
     return errors;
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const errors = validateForm();
@@ -56,6 +57,20 @@ export const SignupForm = () => {
         ...errors,
       }));
       return;
+    }
+
+    try {
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/auth/signup`,
+        formData,
+        {
+          withCredentials: true,
+        }
+      );
+
+      console.log("res", res);
+    } catch (error) {
+      console.log("Error", error);
     }
   };
 
