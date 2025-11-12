@@ -172,6 +172,16 @@ const refreshAccessTokenController = asyncHandler(async (req, res) => {
     const isTokenExpired = error.name === "TokenExpiredError";
 
     if (isTokenExpired) {
+      await User.findByIdAndUpdate(
+        req.user._id,
+        {
+          $unset: {
+            refreshToken: 1,
+          },
+        },
+        { new: true }
+      );
+
       res.clearCookie("accessToken").clearCookie("refreshToken");
     }
 
