@@ -172,8 +172,10 @@ const refreshAccessTokenController = asyncHandler(async (req, res) => {
     const isTokenExpired = error.name === "TokenExpiredError";
 
     if (isTokenExpired) {
+      const decoedToken = jwt.decode(incomingRefreshToken);
+
       await User.findByIdAndUpdate(
-        req.user._id,
+        decoedToken._id,
         {
           $unset: {
             refreshToken: 1,
@@ -182,7 +184,8 @@ const refreshAccessTokenController = asyncHandler(async (req, res) => {
         { new: true }
       );
 
-      res.clearCookie("accessToken").clearCookie("refreshToken");
+      res.clearCookie("accessToken");
+      res.clearCookie("refreshToken");
     }
 
     throw new UnauthorizedError(
