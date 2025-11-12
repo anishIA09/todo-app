@@ -10,8 +10,6 @@ connectToDb()
     const PORT = process.env.PORT;
 
     app.use((err, req, res, next) => {
-      console.log("Global error. ", err);
-
       if (err instanceof ApiError) {
         return res.status(err.statusCode).json({
           success: false,

@@ -126,47 +126,59 @@ const refreshAccessTokenController = asyncHandler(async (req, res) => {
     throw new UnauthorizedError();
   }
 
-  const decoedToken = jwt.verify(
-    incomingRefreshToken,
-    process.env.REFRESH_TOKEN_SECRET
-  );
-
-  const user = await User.findById(decoedToken._id);
-
-  if (!user) {
-    throw new UnauthorizedError("Invalid refresh token.");
-  }
-
-  if (incomingRefreshToken !== user.refreshToken) {
-    throw new UnauthorizedError("Refresh token is invalid or expired.");
-  }
-
-  const accessToken = newUser.generateAccessToken();
-  const refreshToken = newUser.generateRefreshToken();
-
-  user.refreshToken = refreshToken;
-
-  await user.save();
-
-  const cookieOptions = {
-    httpOnly: true,
-    secure: true,
-    sameSite: "Lax",
-  };
-
-  return res
-    .cookie("accessToken", accessToken, cookieOptions)
-    .cookie("refreshToken", refreshToken, cookieOptions)
-    .status(201)
-    .json(
-      new ApiResponse(200, {
-        message: "Access token refresh.",
-        data: {
-          accessToken,
-          refreshToken,
-        },
-      })
+  try {
+    const decoedToken = jwt.verify(
+      incomingRefreshToken,
+      process.env.REFRESH_TOKEN_SECRET
     );
+
+    const user = await User.findById(decoedToken._id);
+
+    if (!user) {
+      throw new UnauthorizedError("Invalid refresh token.");
+    }
+
+    if (incomingRefreshToken !== user.refreshToken) {
+      throw new UnauthorizedError("Refresh token is invalid or expired.");
+    }
+
+    const accessToken = user.generateAccessToken();
+    const refreshToken = user.generateRefreshToken();
+
+    user.refreshToken = refreshToken;
+
+    await user.save();
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Lax",
+    };
+
+    return res
+      .cookie("accessToken", accessToken, cookieOptions)
+      .cookie("refreshToken", refreshToken, cookieOptions)
+      .status(201)
+      .json(
+        new ApiResponse(200, {
+          message: "Access token refresh.",
+          data: {
+            accessToken,
+            refreshToken,
+          },
+        })
+      );
+  } catch (error) {
+    const isTokenExpired = error.name === "TokenExpiredError";
+
+    if (isTokenExpired) {
+      res.clearCookie("accessToken").clearCookie("refreshToken");
+    }
+
+    throw new UnauthorizedError(
+      isTokenExpired ? error.message : "Invalid access token."
+    );
+  }
 });
 
 export { signupController, signinController, refreshAccessTokenController };
