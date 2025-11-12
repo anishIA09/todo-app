@@ -1,6 +1,7 @@
 "use client";
 
 import axios from "axios";
+import { redirect } from "next/navigation";
 import React, { ChangeEvent, FormEvent, useState } from "react";
 
 export const SignupForm = () => {
@@ -60,7 +61,7 @@ export const SignupForm = () => {
     }
 
     try {
-      const res = await axios.post(
+      await axios.post(
         `${process.env.NEXT_PUBLIC_BASE_URL}/auth/signup`,
         formData,
         {
@@ -68,7 +69,7 @@ export const SignupForm = () => {
         }
       );
 
-      console.log("res", res);
+      redirect("/");
     } catch (error) {
       console.log("Error", error);
     }
