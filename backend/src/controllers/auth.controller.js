@@ -89,7 +89,7 @@ const signinController = asyncHandler(async (req, res) => {
 
   user.refreshToken = refreshToken;
 
-  await user.save();
+  await user.save({ validateBeforeSave: false });
 
   const data = {
     _id: user._id,
@@ -147,7 +147,7 @@ const refreshAccessTokenController = asyncHandler(async (req, res) => {
 
     user.refreshToken = refreshToken;
 
-    await user.save();
+    await user.save({ validateBeforeSave: false });
 
     const cookieOptions = {
       httpOnly: true,
@@ -181,4 +181,31 @@ const refreshAccessTokenController = asyncHandler(async (req, res) => {
   }
 });
 
-export { signupController, signinController, refreshAccessTokenController };
+const logoutController = asyncHandler(async (req, res) => {
+  await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $unset: {
+        refreshToken: 1,
+      },
+    },
+    { new: true }
+  );
+
+  return res
+    .cookie("accessToken", accessToken, cookieOptions)
+    .cookie("refreshToken", refreshToken, cookieOptions)
+    .status(200)
+    .json(
+      new ApiResponse(200, {
+        message: "User logout successfully.",
+      })
+    );
+});
+
+export {
+  signupController,
+  signinController,
+  refreshAccessTokenController,
+  logoutController,
+};
