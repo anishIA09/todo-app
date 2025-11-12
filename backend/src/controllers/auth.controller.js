@@ -1,7 +1,12 @@
 import User from "../models/user.model.js";
-import { BadRequestError, NotFoundError } from "../utils/ApiError.js";
+import {
+  BadRequestError,
+  NotFoundError,
+  UnauthorizedError,
+} from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import jwt from "jsonwebtoken";
 
 const signupController = asyncHandler(async (req, res) => {
   const { username, password } = req.body;
@@ -48,15 +53,16 @@ const signupController = asyncHandler(async (req, res) => {
     sameSite: "Lax",
   };
 
-  res.cookie("accessToken", accessToken, cookieOptions);
-  res.cookie("refreshToken", refreshToken, cookieOptions);
-
-  return res.status(201).json(
-    new ApiResponse(201, {
-      message: "User created successfully.",
-      data,
-    })
-  );
+  return res
+    .cookie("accessToken", accessToken, cookieOptions)
+    .cookie("refreshToken", refreshToken, cookieOptions)
+    .status(201)
+    .json(
+      new ApiResponse(201, {
+        message: "User created successfully.",
+        data,
+      })
+    );
 });
 
 const signinController = asyncHandler(async (req, res) => {
@@ -112,4 +118,55 @@ const signinController = asyncHandler(async (req, res) => {
   );
 });
 
-export { signupController, signinController };
+const refreshAccessTokenController = asyncHandler(async (req, res) => {
+  const incomingRefreshToken =
+    req.cookies.refreshToken || req.body.refreshToken;
+
+  if (!incomingRefreshToken) {
+    throw new UnauthorizedError();
+  }
+
+  const decoedToken = jwt.verify(
+    incomingRefreshToken,
+    process.env.REFRESH_TOKEN_SECRET
+  );
+
+  const user = await User.findById(decoedToken._id);
+
+  if (!user) {
+    throw new UnauthorizedError("Invalid refresh token.");
+  }
+
+  if (incomingRefreshToken !== user.refreshToken) {
+    throw new UnauthorizedError("Refresh token is invalid or expired.");
+  }
+
+  const accessToken = newUser.generateAccessToken();
+  const refreshToken = newUser.generateRefreshToken();
+
+  user.refreshToken = refreshToken;
+
+  await user.save();
+
+  const cookieOptions = {
+    httpOnly: true,
+    secure: true,
+    sameSite: "Lax",
+  };
+
+  return res
+    .cookie("accessToken", accessToken, cookieOptions)
+    .cookie("refreshToken", refreshToken, cookieOptions)
+    .status(201)
+    .json(
+      new ApiResponse(200, {
+        message: "Access token refresh.",
+        data: {
+          accessToken,
+          refreshToken,
+        },
+      })
+    );
+});
+
+export { signupController, signinController, refreshAccessTokenController };
