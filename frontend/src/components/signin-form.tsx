@@ -4,7 +4,7 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import React, { ChangeEvent, FormEvent, useState } from "react";
 
-export const SignupForm = () => {
+export const SigninForm = () => {
   type FormData = {
     username: string;
     password: string;
@@ -64,7 +64,7 @@ export const SignupForm = () => {
 
     try {
       await axios.post(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/auth/signup`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/auth/signin`,
         formData,
         {
           withCredentials: true,
@@ -79,7 +79,7 @@ export const SignupForm = () => {
 
   return (
     <div className="w-md rounded-md bg-neutral-100 shadow-md p-6 border border-neutral-200">
-      <h3 className="text-lg font-semibold text-center mb-5">Sign Up</h3>
+      <h3 className="text-lg font-semibold text-center mb-5">Sign In</h3>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <LabelInputContainer>
           <Label htmlFor="username">Username</Label>
@@ -109,7 +109,7 @@ export const SignupForm = () => {
           )}
         </LabelInputContainer>
         <button className="h-9 rounded-md bg-neutral-700 text-white text-sm font-medium hover:-top-0.5 active:scale-[98%] relative transition-all duration-200 hover:shadow-lg">
-          Sign Up
+          Sign In
         </button>
       </form>
     </div>
