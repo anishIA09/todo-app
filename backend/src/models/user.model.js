@@ -13,13 +13,6 @@ const UserSchema = new mongoose.Schema(
     password: {
       type: String,
     },
-    email: {
-      type: String,
-      trim: true,
-      lowerCase: true,
-      unique: true,
-      spare: true,
-    },
     isEmailVerified: {
       type: Boolean,
       default: false,
