@@ -7,7 +7,7 @@ const userSelfDetailsController = asyncHandler(async (req, res) => {
   const authenticatedUser = req.user;
 
   const user = await User.findById(authenticatedUser._id).select(
-    "-password -refreshToken"
+    "-password -refreshToken",
   );
 
   if (!user) {
@@ -28,7 +28,7 @@ const userSelfDetailsController = asyncHandler(async (req, res) => {
     new ApiResponse(200, {
       message: "User details fetched successfully.",
       data,
-    })
+    }),
   );
 });
 
