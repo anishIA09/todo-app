@@ -50,7 +50,7 @@ const signupController = asyncHandler(async (req, res) => {
   const cookieOptions = {
     httpOnly: true,
     secure: true,
-    sameSite: "Lax",
+    sameSite: "none",
   };
 
   return res
@@ -61,7 +61,7 @@ const signupController = asyncHandler(async (req, res) => {
       new ApiResponse(201, {
         message: "User created successfully.",
         data,
-      })
+      }),
     );
 });
 
@@ -104,7 +104,7 @@ const signinController = asyncHandler(async (req, res) => {
   const cookieOptions = {
     httpOnly: true,
     secure: true,
-    sameSite: "Lax",
+    sameSite: "none",
   };
 
   res.cookie("accessToken", accessToken, cookieOptions);
@@ -114,7 +114,7 @@ const signinController = asyncHandler(async (req, res) => {
     new ApiResponse(200, {
       message: "User loggedin successfully.",
       data,
-    })
+    }),
   );
 });
 
@@ -129,7 +129,7 @@ const refreshAccessTokenController = asyncHandler(async (req, res) => {
   try {
     const decoedToken = jwt.verify(
       incomingRefreshToken,
-      process.env.REFRESH_TOKEN_SECRET
+      process.env.REFRESH_TOKEN_SECRET,
     );
 
     const user = await User.findById(decoedToken._id);
@@ -166,7 +166,7 @@ const refreshAccessTokenController = asyncHandler(async (req, res) => {
             accessToken,
             refreshToken,
           },
-        })
+        }),
       );
   } catch (error) {
     const isTokenExpired = error.name === "TokenExpiredError";
@@ -181,7 +181,7 @@ const refreshAccessTokenController = asyncHandler(async (req, res) => {
             refreshToken: 1,
           },
         },
-        { new: true }
+        { new: true },
       );
 
       res.clearCookie("accessToken");
@@ -189,7 +189,7 @@ const refreshAccessTokenController = asyncHandler(async (req, res) => {
     }
 
     throw new UnauthorizedError(
-      isTokenExpired ? error.message : "Invalid access token."
+      isTokenExpired ? error.message : "Invalid access token.",
     );
   }
 });
@@ -202,17 +202,23 @@ const logoutController = asyncHandler(async (req, res) => {
         refreshToken: 1,
       },
     },
-    { new: true }
+    { new: true },
   );
 
+  const cookieOptions = {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+  };
+
   return res
-    .cookie("accessToken", accessToken, cookieOptions)
-    .cookie("refreshToken", refreshToken, cookieOptions)
+    .clearCookie("accessToken")
+    .clearCookie("refreshToken")
     .status(200)
     .json(
       new ApiResponse(200, {
         message: "User logout successfully.",
-      })
+      }),
     );
 });
 
